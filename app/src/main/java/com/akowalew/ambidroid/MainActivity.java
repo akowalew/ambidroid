@@ -14,6 +14,7 @@ import android.view.MenuItem;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
+    private Intent mAmbilightService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,8 +29,7 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                startProjection();
             }
         });
     }
@@ -63,6 +63,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        stopProjection();
+        Log.v(TAG, "Destroyed");
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
@@ -84,5 +92,23 @@ public class MainActivity extends AppCompatActivity {
         Context context = this;
         Intent settingsActivity = new Intent(context, SettingsActivity.class);
         startActivity(settingsActivity);
+    }
+
+    private void startProjection() {
+        if(mAmbilightService == null) {
+            Log.v(TAG, "Starting projection...");
+
+            mAmbilightService = new Intent(this, AmbilightService.class);
+            startService(mAmbilightService);
+        }
+    }
+
+    private void stopProjection() {
+        if(mAmbilightService != null) {
+            Log.v(TAG, "Stopping projection");
+
+            stopService(mAmbilightService);
+            mAmbilightService = null;
+        }
     }
 }

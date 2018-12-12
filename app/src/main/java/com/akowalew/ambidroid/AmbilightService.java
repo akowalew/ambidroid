@@ -14,7 +14,7 @@ public class AmbilightService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        if (intent != null) {
+        if (intent == null) {
             return;
         }
 
