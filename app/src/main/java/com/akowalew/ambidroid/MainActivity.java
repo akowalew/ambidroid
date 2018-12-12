@@ -16,8 +16,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "MainActivity";
-
     private class ResponseReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -28,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private static final String TAG = "MainActivity";
     private Intent mAmbilightService = null;
     private ResponseReceiver mResponseReceiver = null;
 
@@ -39,18 +38,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         registerBroadcastReceiver();
-
-        final Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        final FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startProjection();
-                view.setEnabled(false);
-            }
-        });
+        setupToolbar();
     }
 
     @Override
@@ -107,6 +95,16 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    public void onFloatingActionButtonClick(View view) {
+        startProjection();
+        view.setEnabled(false);
+    }
+
+    private void setupToolbar() {
+        final Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+    }
+
     private void startSettingsActivity() {
         Log.v(TAG, "Starting SettingsActivity...");
         final Context context = this;
@@ -155,5 +153,4 @@ public class MainActivity extends AppCompatActivity {
             mResponseReceiver = null;
         }
     }
-
 }
