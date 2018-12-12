@@ -1,5 +1,7 @@
 package com.akowalew.ambidroid;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -70,9 +72,17 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            startSettingsActivity();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void startSettingsActivity() {
+        Log.v(TAG, "Starting SettingsActivity...");
+        Context context = this;
+        Intent settingsActivity = new Intent(context, SettingsActivity.class);
+        startActivity(settingsActivity);
     }
 }
