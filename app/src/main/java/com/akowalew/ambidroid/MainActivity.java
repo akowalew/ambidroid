@@ -1,10 +1,13 @@
 package com.akowalew.ambidroid;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -14,7 +17,19 @@ import android.view.MenuItem;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
-    private Intent mAmbilightService;
+
+    private class ResponseReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if(AmbilightService.RESPONSE.equals(action)) {
+                onProjectionFinish();
+            }
+        }
+    }
+
+    private Intent mAmbilightService = null;
+    private ResponseReceiver mResponseReceiver = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,14 +37,18 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = findViewById(R.id.toolbar);
+
+        registerBroadcastReceiver();
+
+        final Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = findViewById(R.id.fab);
+        final FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startProjection();
+                view.setEnabled(false);
             }
         });
     }
@@ -66,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
+        unregisterBroadcastReceiver();
         stopProjection();
         Log.v(TAG, "Destroyed");
     }
@@ -78,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
+        final int id = item.getItemId();
         if (id == R.id.action_settings) {
             startSettingsActivity();
             return true;
@@ -89,9 +109,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void startSettingsActivity() {
         Log.v(TAG, "Starting SettingsActivity...");
-        Context context = this;
-        Intent settingsActivity = new Intent(context, SettingsActivity.class);
-        startActivity(settingsActivity);
+        final Context context = this;
+        final Intent settings = new Intent(context, SettingsActivity.class);
+        startActivity(settings);
     }
 
     private void startProjection() {
@@ -105,10 +125,35 @@ public class MainActivity extends AppCompatActivity {
 
     private void stopProjection() {
         if(mAmbilightService != null) {
-            Log.v(TAG, "Stopping projection");
+            Log.v(TAG, "Stopping projection...");
 
             stopService(mAmbilightService);
             mAmbilightService = null;
         }
     }
+
+    private void onProjectionFinish() {
+        Log.v(TAG, "Projection finished");
+        mAmbilightService = null;
+        findViewById(R.id.fab).setEnabled(true);
+    }
+
+    private void registerBroadcastReceiver() {
+        assert mResponseReceiver == null;
+
+        Log.v(TAG, "Registering broadcast receiver...");
+        final IntentFilter intentFilter = new IntentFilter(AmbilightService.RESPONSE);
+        mResponseReceiver = new ResponseReceiver();
+        LocalBroadcastManager.getInstance(this).registerReceiver(mResponseReceiver, intentFilter);
+    }
+
+    private void unregisterBroadcastReceiver() {
+        if(mResponseReceiver != null)
+        {
+            Log.v(TAG, "Unregistering broadcast receiver...");
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(mResponseReceiver);
+            mResponseReceiver = null;
+        }
+    }
+
 }
