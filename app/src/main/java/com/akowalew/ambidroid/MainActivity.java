@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -14,67 +15,49 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
-    private class ResponseReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            final String action = intent.getAction();
-            if(AmbilightService.RESPONSE.equals(action)) {
-                onProjectionFinish();
-            }
-        }
-    }
-
     private static final String TAG = "MainActivity";
-    private Intent mAmbilightService = null;
-    private ResponseReceiver mResponseReceiver = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.v(TAG, "Creating...");
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        registerBroadcastReceiver();
         setupToolbar();
+        registerBroadcastReceiver();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-
         Log.v(TAG, "Started");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
         Log.v(TAG, "Resumed");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-
         Log.v(TAG, "Paused");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-
         Log.v(TAG, "Stopped");
     }
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
-
-        unregisterBroadcastReceiver();
         stopProjection();
+        unregisterBroadcastReceiver();
+        super.onDestroy();
         Log.v(TAG, "Destroyed");
     }
 
@@ -91,7 +74,6 @@ public class MainActivity extends AppCompatActivity {
             startSettingsActivity();
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -105,6 +87,24 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
     }
 
+    private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            switch(action != null ? action : "") {
+                case AmbilightService.START_ACTION:
+                    onProjectionStart();
+                    break;
+                case AmbilightService.STOP_ACTION:
+                    onProjectionStop();
+                    break;
+                default:
+                    Log.v(TAG, "Received unsupported action: '" + action + "'");
+                    break;
+            }
+        }
+    };
+
     private void startSettingsActivity() {
         Log.v(TAG, "Starting SettingsActivity...");
         final Context context = this;
@@ -113,44 +113,42 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startProjection() {
-        if(mAmbilightService == null) {
-            Log.v(TAG, "Starting projection...");
-
-            mAmbilightService = new Intent(this, AmbilightService.class);
-            startService(mAmbilightService);
+        Log.v(TAG, "Starting projection...");
+        final Intent startIntent = new Intent(this, AmbilightService.class);
+        startIntent.setAction(AmbilightService.START_ACTION);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(startIntent);
+        } else {
+            startService(startIntent);
         }
     }
 
     private void stopProjection() {
-        if(mAmbilightService != null) {
-            Log.v(TAG, "Stopping projection...");
-
-            stopService(mAmbilightService);
-            mAmbilightService = null;
-        }
+        Log.v(TAG, "Stopping projection...");
+        final Intent stopIntent = new Intent(this, AmbilightService.class);
+        stopIntent.setAction(AmbilightService.STOP_ACTION);
+        startService(stopIntent);
     }
 
-    private void onProjectionFinish() {
-        Log.v(TAG, "Projection finished");
-        mAmbilightService = null;
+    private void onProjectionStart() {
+        Log.v(TAG, "Projection started");
+        Toast.makeText(this, "Projection started", Toast.LENGTH_LONG).show();
+    }
+
+    private void onProjectionStop() {
+        Log.v(TAG, "Projection stopped");
+        Toast.makeText(this, "Projection stopped", Toast.LENGTH_LONG).show();
         findViewById(R.id.fab).setEnabled(true);
     }
 
     private void registerBroadcastReceiver() {
-        assert mResponseReceiver == null;
-
-        Log.v(TAG, "Registering broadcast receiver...");
-        final IntentFilter intentFilter = new IntentFilter(AmbilightService.RESPONSE);
-        mResponseReceiver = new ResponseReceiver();
-        LocalBroadcastManager.getInstance(this).registerReceiver(mResponseReceiver, intentFilter);
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(AmbilightService.START_ACTION);
+        intentFilter.addAction(AmbilightService.STOP_ACTION);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, intentFilter);
     }
 
     private void unregisterBroadcastReceiver() {
-        if(mResponseReceiver != null)
-        {
-            Log.v(TAG, "Unregistering broadcast receiver...");
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(mResponseReceiver);
-            mResponseReceiver = null;
-        }
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
     }
 }
