@@ -1,0 +1,4 @@
+[submodule "usb-serial-for-android"]
+	path = usb-serial-for-android
+	url = https://github.com/akowalew/usb-serial-for-android.git
+	branch = build-fixes
