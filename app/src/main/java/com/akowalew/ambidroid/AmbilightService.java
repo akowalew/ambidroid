@@ -73,8 +73,8 @@ public class AmbilightService extends Service {
         final PendingIntent pendingIntent = PendingIntent.getService(context, 0, intent, 0);
         final Notification notification = getNotificationBuilder(context, CHANNEL_ID, IMPORTANCE)
             .setSmallIcon(R.mipmap.ic_launcher_round)
-            .setContentTitle("Projection in progress...")
-            .setContentText("Tap to stop")
+            .setContentTitle(getString(R.string.ambilight_notification_title))
+            .setContentText(getString(R.string.ambilight_notification_text))
             .setOngoing(true)
             .setContentIntent(pendingIntent)
             .setAutoCancel(false)
@@ -110,7 +110,7 @@ public class AmbilightService extends Service {
     @TargetApi(26)
     private static void prepareChannel(Context context, String id, int importance) {
         final String appName = context.getString(R.string.app_name);
-        final String description = "Channel description";
+        final String description = context.getString(R.string.channel_description);
         final NotificationManager nm = (NotificationManager) context.getSystemService(Activity.NOTIFICATION_SERVICE);
         if(nm != null) {
             NotificationChannel nChannel = nm.getNotificationChannel(id);

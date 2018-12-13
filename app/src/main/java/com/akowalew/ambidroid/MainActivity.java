@@ -132,12 +132,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void onProjectionStart() {
         Log.v(TAG, "Projection started");
-        Toast.makeText(this, "Projection started", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, getString(R.string.on_projection_start), Toast.LENGTH_LONG).show();
     }
 
     private void onProjectionStop() {
         Log.v(TAG, "Projection stopped");
-        Toast.makeText(this, "Projection stopped", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, getString(R.string.on_projection_stop), Toast.LENGTH_LONG).show();
         findViewById(R.id.fab).setEnabled(true);
     }
 
